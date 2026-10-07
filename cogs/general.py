@@ -1,21 +1,25 @@
-import asyncio
+import asyncio, datetime
 import os
 import random
-
 from discord.ext import commands
 from uwuipy import Uwuipy
 
-import ids
+from constants import committee_channel
+from bot.bot import Bot
+from utils import random_status_code
 
 
 class GeneralCog(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: Bot):
         self.bot = bot
         self.uwu = Uwuipy()
 
     @commands.hybrid_command(name="ping", description="Check the bot's latency.")
     async def ping(self, ctx: commands.Context):
-        await ctx.send(f"Pong! Latency: {round(self.bot.latency * 1000)} ms")
+        time = datetime.datetime.now()
+        message = await ctx.send("Pong...")
+        latency = (datetime.datetime.now() - time).total_seconds() * 1000
+        await message.edit(content=f"Pong! Latency: {round(latency)} ms")
 
     @commands.hybrid_command(name="coinflip", description="Flips a coin.")
     async def coinflip(self, ctx: commands.Context):
@@ -35,15 +39,11 @@ class GeneralCog(commands.Cog):
 
     @commands.hybrid_command(name="httpcat", description="Return a random image from http.cat.")
     async def httpcat(self, ctx: commands.Context):
-        await ctx.send(f"https://http.cat/{self.random_status_code()}")
+        await ctx.send(f"https://http.cat/{random_status_code()}")
 
     @commands.hybrid_command(name="httpdog", description="Return a random image from http.dog.")
     async def httpdog(self, ctx: commands.Context):
-        await ctx.send(f"https://http.dog/{self.random_status_code()}.jpg")
-
-    @staticmethod
-    def random_status_code() -> int:
-        return random.choice([100, 101, 102, 200, 201, 202, 203, 204, 206, 207, 300, 301, 302, 303, 304, 305, 307, 400, 401, 402, 403, 404, 405, 406, 407, 408, 409, 410, 411, 412, 413, 414, 415, 416, 417, 418, 420, 421, 422, 423, 424, 425, 426, 429, 431, 444, 450, 451, 497, 498, 499])
+        await ctx.send(f"https://http.dog/{random_status_code()}.jpg")
 
     @commands.hybrid_command(name="credits", description="Shows the credits for the bot.")
     async def credits(self, ctx: commands.Context):
@@ -81,7 +81,7 @@ class GeneralCog(commands.Cog):
     @commands.hybrid_command(name="request_command", description="Ask the developers to add a new command.")
     async def request_command(self, ctx: commands.Context, description: str):
         await ctx.send("Thanks! This has been sent to the committee for review. If they like it, it will be added.")
-        channel = self.bot.get_channel(ids.committee_channel)
+        channel = self.bot.get_channel(committee_channel)
         await channel.send(f"New command request from {ctx.author.mention}:\n{description}")  # type: ignore
 
     async def wait_for_choice(self, ctx: commands.Context, choices: list[str]) -> str:
@@ -91,5 +91,5 @@ class GeneralCog(commands.Cog):
         return message.content.lower()
 
 
-async def setup(bot: commands.Bot):
+async def setup(bot: Bot):
     await bot.add_cog(GeneralCog(bot))

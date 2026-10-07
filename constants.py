@@ -1,3 +1,25 @@
+import os
+from dotenv import load_dotenv
+from typing import Dict
+
+load_dotenv()
+
+TOKEN = os.getenv("CLIENT_TOKEN")
+
+COLORS: Dict[str, str] = {"red": "\033[31m", "green": "\033[32m", "yellow": "\033[33m", "blue": "\033[34m", "default": "\033[37m"}
+
+TICKET_CATEGORY_ID: int = 0  # Replace with your actual ticket category ID
+
+COLOUR_MAIN = 0x43a1e8
+COLOUR_NEUTRAL = 0xFCAE1E
+COLOUR_GOOD = 0x03C04A
+
+smtp_server = os.getenv("SMTP_SERVER")
+smtp_port = int(os.getenv("SMTP_PORT")) # type: ignore
+smtp_username = os.getenv("SMTP_USERNAME")
+smtp_password = os.getenv("SMTP_PASSWORD")
+smtp_from = os.getenv("SMTP_FROM")
+
 # Ids for server channels and roles
 server_id = 1011277165872021504
 
@@ -10,6 +32,7 @@ event_planning_channel = 1011280355887689799
 server_updates_channel = 1011283526345293836
 bot_log_channel = 1011294949679059015
 the_senate_voice_channel = 1011279865808424960
+ticket_log_channel = 1154401081237966959
 
 committee_group = [
     committee_channel,
@@ -86,3 +109,5 @@ they_them_role = 1012486431421247508
 
 testing_role = 1032271882529021963
 northumbria_student_role = 1061275573017641060
+
+#Colour roles

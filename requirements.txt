@@ -3,3 +3,6 @@ requests
 python-dotenv
 pyOutlook
 uwuipy # lord have mercy on my soul
+sqlalchemy[asyncio]
+asyncio
+chat-exporter

@@ -1,88 +1,91 @@
 import discord
 from discord.ext import commands
 
-import ids
-
+from constants import verified_role, stage_1_role, stage_2_role, stage_3_role, alumni_role
+from utils import is_committee_member
+from views import confirm
+from bot.bot import Bot
 
 class CommitteeCog(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: Bot):
         self.bot = bot
-
-    def is_committee_member(self, ctx: commands.Context) -> bool:
-        return ids.committee_role in [role.id for role in ctx.author.roles]
-
-    async def confirm(self, ctx: commands.Context) -> bool:
-        def check(message):
-            return message.author == ctx.author and message.channel == ctx.channel and message.content.lower() in ["yes", "no"]
-        try:
-            message = await self.bot.wait_for("message", check=check, timeout=60.0)
-        except TimeoutError:
-            return False
-        return message.content.lower() == "yes"
 
     @commands.hybrid_command(name="verify", description="For committee members to verify a student.")
     async def verify(self, ctx: commands.Context, user: discord.Member):
-        if not self.is_committee_member(ctx):
+        if not is_committee_member(ctx):
             print(f"User {ctx.author} attempted to use verify command without permission.")
             await ctx.send("You do not have permission to use this command.")
             return
-        await user.add_roles(discord.Object(id=ids.verified_role))
+        verified = ctx.guild.get_role(verified_role)  # type: ignore
+        if verified is None:
+            await ctx.send("Verified role not found in this server.", ephemeral=True)
+            return
+        await user.add_roles(verified)
         await ctx.send(f"{user.mention} has been verified.")
 
     @commands.hybrid_command(name="unverify", description="For committee members to unverify a student.")
     async def unverify(self, ctx: commands.Context, user: discord.Member):
-        if not self.is_committee_member(ctx):
+        if not is_committee_member(ctx):
             print(f"User {ctx.author} attempted to use unverify command without permission.")
             await ctx.send("You do not have permission to use this command.")
             return
-        await user.remove_roles(discord.Object(id=ids.verified_role))
+        verified = ctx.guild.get_role(verified_role)  # type: ignore
+        if verified is None:
+            await ctx.send("Verified role not found in this server.", ephemeral=True)
+            return
+        await user.remove_roles(verified)
         await ctx.send(f"{user.mention} has been unverified.")
 
     @commands.hybrid_command(name="unverify_all", description="For committee members to unverify all students.")
     async def unverify_all(self, ctx: commands.Context):
-        if not self.is_committee_member(ctx):
+        if not is_committee_member(ctx):
             print(f"User {ctx.author} attempted to use unverify_all command without permission.")
             await ctx.send("You do not have permission to use this command.")
             return
-        await ctx.send("Please take extreme caution when running this command. This command removes verification from all users in the server. Are you sure you want to continue? (yes/no)")
-        if not await self.confirm(ctx):
-            await ctx.send("Command cancelled.")
+        await ctx.send("Please take extreme caution when running this command. This command removes verification from all users in the server.")
+        if not await confirm(ctx):
             return
-        await ctx.send("Are you absolutely sure you want to UNVERIFY ALL USERS?\nThis action is not reversable without a few hours of work, blood, sweat, and tears.\nPlease make sure you are running the right command.\nYou are about to remove the 'Verified' role from everyone in the server.\nDo you DEFINITELY want to continue? (yes/no)")
-        if not await self.confirm(ctx):
-            await ctx.send("Command cancelled.")
+        await ctx.send("Are you absolutely sure you want to UNVERIFY ALL USERS?\nThis action is not reversable without a few hours of work, blood, sweat, and tears.\nPlease make sure you are running the right command.\nYou are about to remove the 'Verified' role from everyone in the server.")
+        if not await confirm(ctx):
             return
         await ctx.send("Okay. Unverifying all users now. This may take a few minutes.")
+        verified = ctx.guild.get_role(verified_role)  # type: ignore
+        if verified is None:
+            await ctx.send("Verified role not found in this server.", ephemeral=True)
+            return
         for member in ctx.guild.members:  # type: ignore
-            if ids.verified_role in [role.id for role in member.roles]:
+            if verified in member.roles:
                 print(f"Removing verified role from {member}.")
-                await member.remove_roles(discord.Object(id=ids.verified_role))
+                await member.remove_roles(verified)
         await ctx.send("All users have been unverified.")
 
-    # TODO: This command needs to be edited to ensure the users roles in "Channels and Roles" are also updated, otherwise it freaks out.
     @commands.hybrid_command(name="stage_up", description="Move all users in the server up a stage.")
     async def stage_up(self, ctx: commands.Context):
-        if not self.is_committee_member(ctx):
+        if not is_committee_member(ctx):
             print(f"User {ctx.author} attempted to use stage_up command without permission.")
             await ctx.send("You do not have permission to use this command.")
             return
-        await ctx.send("Are you sure you want to move all users up a stage? This action is reversable but annoying to do. (yes/no)")
-        if not await self.confirm(ctx):
-            await ctx.send("Command cancelled.")
+        if not await confirm(ctx):
             return
         await ctx.send("Moving all users up a stage now. This may take a few minutes.")
+        stage_1 = ctx.guild.get_role(stage_1_role)  # type: ignore
+        stage_2 = ctx.guild.get_role(stage_2_role)  # type: ignore
+        stage_3 = ctx.guild.get_role(stage_3_role)  # type: ignore
+        alumni = ctx.guild.get_role(alumni_role)  # type: ignore
+        if stage_1 is None or stage_2 is None or stage_3 is None or alumni is None:
+            await ctx.send("One or more stage roles not found in this server.", ephemeral=True)
+            return
         for member in ctx.guild.members:  # type: ignore
             print(f"Editing roles for {member}.")
-            role_ids = [role.id for role in member.roles]
-            if ids.stage_1_role in role_ids:
-                await member.remove_roles(discord.Object(id=ids.stage_1_role))
-                await member.add_roles(discord.Object(id=ids.stage_2_role))
-            elif ids.stage_2_role in role_ids:
-                await member.remove_roles(discord.Object(id=ids.stage_2_role))
-                await member.add_roles(discord.Object(id=ids.stage_3_role))
-            elif ids.stage_3_role in role_ids:
-                await member.remove_roles(discord.Object(id=ids.stage_3_role))
-                await member.add_roles(discord.Object(id=ids.alumni_role))
+            if stage_1 in member.roles:
+                await member.remove_roles(stage_1)
+                await member.add_roles(stage_2)
+            elif stage_2 in member.roles:
+                await member.remove_roles(stage_2)
+                await member.add_roles(stage_3)
+            elif stage_3 in member.roles:
+                await member.remove_roles(stage_3)
+                await member.add_roles(alumni)
         await ctx.send("All users have been moved up a stage.\nPlease make an announcement to the server to inform members of this change.")
 
     @commands.hybrid_command(name="verify_all", description="For committee members to verify all students.")
@@ -91,20 +94,22 @@ class CommitteeCog(commands.Cog):
         quite rare for this to be used, im only making this whilst locking down the server.
         this verifies EVERYONE below the nucats bot role, so be careful, youll probs verify a bot or two but easy to get rid of when they pop up.
         """
-        if not self.is_committee_member(ctx):
+        if not is_committee_member(ctx):
             print(f"User {ctx.author} attempted to use verify_all command without permission.")
             await ctx.send("You do not have permission to use this command.")
             return
-        await ctx.send("Are you sure you want to verify all users? This action is reversable but annoying to do. (yes/no)")
-        if not await self.confirm(ctx):
-            await ctx.send("Command cancelled.")
+        if not await confirm(ctx):
             return
         await ctx.send("Verifying all users now. This may take a few minutes.")
+        verified = ctx.guild.get_role(verified_role)  # type: ignore
+        if verified is None:
+            await ctx.send("Verified role not found in this server.", ephemeral=True)
+            return
         for member in ctx.guild.members:  # type: ignore
-            if ids.verified_role not in [role.id for role in member.roles]:
+            if verified not in member.roles:
                 print(f"Adding verified role to {member}.")
-                await member.add_roles(discord.Object(id=ids.verified_role))
+                await member.add_roles(verified)
         await ctx.send("All users have been verified.")
 
-async def setup(bot: commands.Bot):
+async def setup(bot: Bot):
     await bot.add_cog(CommitteeCog(bot))
