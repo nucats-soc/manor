@@ -1,4 +1,5 @@
 import os
+import discord
 from dotenv import load_dotenv
 from typing import Dict
 
@@ -22,6 +23,7 @@ smtp_from = os.getenv("SMTP_FROM")
 
 # Ids for server channels and roles
 server_id = 1011277165872021504
+guild = discord.Object(id=server_id)
 
 bot_testing_channel = 1106202485661630565
 
@@ -48,6 +50,7 @@ information_channel = 1047520126620160041
 auth_channel = 1550464391156342865
 welcome_channel = 1011277166371156059
 announcements_channel = 1011277166371156061
+roles_channel = 1011277166371156062
 
 # Text Channels
 general_channel = 1011277166371156064
@@ -103,11 +106,23 @@ placement_role = 1011279029443244062
 postgrad_role = 1011279081263861791
 alumni_role = 1011279128445587556
 
+external_student_role = 1061275573017641060
+
 he_him_role = 1012485842691969116
 she_her_role = 1012486225745154068
 they_them_role = 1012486431421247508
 
-testing_role = 1032271882529021963
-northumbria_student_role = 1061275573017641060
+uni_announcements_role = 1169937222565380126
+event_announcements_role = 1557331205127405679
+infra_announcements_role = 1557334382774198282
+general_announcements_role = 1557332412910800966
+irl_updates_role = 1557335687919837244
 
-#Colour roles
+# Colour roles
+red = 1557332761369514064
+orange = 1557332811034394676
+yellow = 1557332858287161445
+green = 1557332595392651324
+blue = 1557332885260738600
+purple = 1557332917942882365
+pink = 1557332951690125372
