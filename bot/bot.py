@@ -2,7 +2,7 @@ import discord, os, asyncio
 from discord.ext import commands
 
 from utils.utils import color_message
-from constants import TOKEN
+from constants import TOKEN, guild
 
 class Bot(commands.Bot):
     def __init__(self):
@@ -18,6 +18,7 @@ class Bot(commands.Bot):
         os.system("cls")
         print(color_message(message="Initializing bot...", color="yellow"))
         asyncio.run(self.load_extensions())
+
         self.run(TOKEN) # type: ignore
 
     async def load_extensions(self):
@@ -33,5 +34,8 @@ class Bot(commands.Bot):
 
     async def on_ready(self):
         print(color_message(message=f"Logged in as {self.user}!", color="green"))
+        # sync command tree to server
+        self.tree.copy_global_to(guild=guild)
+        await self.tree.sync(guild=guild)
         await self.change_presence(status=discord.Status.online, activity=discord.Activity(type=discord.ActivityType.playing, name=f"Prefix: !"))
                 
