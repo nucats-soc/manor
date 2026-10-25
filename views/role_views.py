@@ -138,7 +138,7 @@ class RolePanel(discord.ui.View):
                 "announcements",
                 "Announcements: select to toggle",
                 [
-                    ("University", role_constants.uni_announcements_role),
+                    ("External", role_constants.external_announcements_role),
                     ("Events", role_constants.event_announcements_role),
                     ("Infrastructure", role_constants.infra_announcements_role),
                     ("General", role_constants.general_announcements_role),

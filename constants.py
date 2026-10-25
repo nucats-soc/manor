@@ -112,7 +112,7 @@ he_him_role = 1012485842691969116
 she_her_role = 1012486225745154068
 they_them_role = 1012486431421247508
 
-uni_announcements_role = 1169937222565380126
+external_announcements_role = 1169937222565380126
 event_announcements_role = 1557331205127405679
 infra_announcements_role = 1557334382774198282
 general_announcements_role = 1557332412910800966
